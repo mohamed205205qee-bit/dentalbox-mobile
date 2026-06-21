@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# mobile_app.py (النسخة الإمبراطورية النهائية - إجبار تشغيل الكاميرا الخلفية فقط للرادار 🚀📸)
+# mobile_app.py (النسخة الإمبراطورية النهائية المصلحة - الربط التلقائي الفوري للباركود بالسلة 🚀🛒📸)
 
 import streamlit as st
 import datetime
@@ -105,12 +105,17 @@ else:
         "📊 الأرباح", "🛒 فاتورة جديدة", "➕ صنف جديد", "📦 جرد المخزن", "👥 العملاء"
     ])
 
-    # التقاط الكود المقروء أوتوماتيكياً من الرادار
-    if "barcode" in st.query_params:
-        st.session_state['js_scanned_code'] = st.query_params["barcode"]
+    # 📥 التقاط الكود المقروء من الرادار وتحويله لنص صريح ونظيف فوراً لحل مشكلة عدم التسجيل 🎯
+    query_params = st.query_params
+    if "barcode" in query_params:
+        raw_code = query_params["barcode"]
+        if isinstance(raw_code, list):
+            st.session_state['js_scanned_code'] = str(raw_code[0]).strip()
+        else:
+            st.session_state['js_scanned_code'] = str(raw_code).strip()
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 🧱 كود بناء الرادار المحدث لإجبار الكاميرا الخلفية فقط 📸✨
+    # 🧱 كود بناء الرادار المحدث لإجبار الكاميرا الخلفية 📸✨
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     def html_scanner_component(key_id):
         return f"""
@@ -119,7 +124,7 @@ else:
                 <div class="laser-line"></div>
                 <div id="reader_{key_id}" style="width: 100%;"></div>
             </div>
-            <p id="status_{key_id}" style="color: #10b981; font-family: sans-serif; font-weight: bold; margin-top: 8px;">📸 الرادار بيبحث بالعدسة الخلفية...</p>
+            <p id="status_{key_id}" style="color: #10b981; font-family: sans-serif; font-weight: bold; margin-top: 8px;">📸 الرادار يبحث بالعدسة الخلفية...</p>
         </div>
         <script src="https://unpkg.com/html5-qrcode"></script>
         <script>
@@ -129,11 +134,10 @@ else:
                 html5QrcodeScanner.clear();
             }}
             
-            // قفل أمني لإجبار الكاميرا الخلفية (environment) ومنع السيلفي تماماً 👑
             const html5QrcodeScanner = new Html5QrcodeScanner("reader_{key_id}", {{ 
                 fps: 25, 
                 qrbox: {{ width: 250, height: 150 }},
-                videoConstraints: {{ facingMode: {{ exact: "environment" }} }}, // 👈 هنا الإجبار الفوري للكاميرا الخلفية
+                videoConstraints: {{ facingMode: {{ exact: "environment" }} }},
                 experimentalFeatures: {{ useBarCodeDetectorIfSupported: true }}
             }}, false);
             html5QrcodeScanner.render(onScanSuccess);
@@ -157,7 +161,7 @@ else:
         except: pass
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 2️⃣ Tab 2: الفاتورة الجديدة مع الرادار المحدث 🛒
+    # 2️⃣ Tab 2: الفاتورة الجديدة (تم إصلاح تسجيل السلة التلقائي هنا 🔥🛒)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_new_invoice:
         st.markdown("### 🛒 تجهيز فاتورة مبيعات متعددة الأصناف")
@@ -165,40 +169,68 @@ else:
         components.html(html_scanner_component("invoice"), height=310)
 
         try:
+            # جلب المنتجات من السحاب لمطابقتها مع الباركود الممسوح
             prod_res = supabase.table('products').select('code, name, purchase_price, selling_price, quantity').execute()
-            all_products_dict = {p['code']: p for p in prod_res.data} if prod_res.data else {}
+            all_products_dict = {str(p['code']).strip(): p for p in prod_res.data} if prod_res.data else {}
             all_products_by_name = {p['name']: p for p in prod_res.data} if prod_res.data else {}
             
+            # 🔥 التعديل الجوهري: الربط الفوري والسلس مع السلة بمجرد لقط الكود
             if st.session_state['js_scanned_code']:
                 scanned_code_str = str(st.session_state['js_scanned_code']).strip()
+                
                 if scanned_code_str in all_products_dict:
                     matched_prod = all_products_dict[scanned_code_str]
                     
+                    # التحقق إذا كان الصنف مضاف مسبقاً لزيادة الكمية فقط
                     found_in_cart = False
                     for idx, item in enumerate(st.session_state['cart']):
-                        if item['code'] == scanned_code_str:
+                        if str(item['code']).strip() == scanned_code_str:
                             st.session_state['cart'][idx]['qty'] += 1
                             found_in_cart = True
                             break
                     
                     if not found_in_cart:
                         st.session_state['cart'].append({
-                            'code': matched_prod['code'], 'name': matched_prod['name'],
-                            'purchase_price': float(matched_prod['purchase_price'] or 0), 'selling_price': float(matched_prod['selling_price'] or 0),
-                            'qty': 1, 'max_qty': int(matched_prod['quantity'] or 0)
+                            'code': matched_prod['code'], 
+                            'name': matched_prod['name'],
+                            'purchase_price': float(matched_prod['purchase_price'] or 0), 
+                            'selling_price': float(matched_prod['selling_price'] or 0),
+                            'qty': 1, 
+                            'max_qty': int(matched_prod['quantity'] or 0)
                         })
-                    st.toast(f"📥 تم إضافة: {matched_prod['name']} للسلة!")
+                    st.toast(f"📥 تم تسجيل: {matched_prod['name']} جوه الفاتورة الكلية!")
                 else:
-                    st.error(f"⚠️ الباركود ({scanned_code_str}) غير مسجل بمخزن العيادة!")
+                    st.error(f"⚠️ الباركود مسح بنجاح ({scanned_code_str}) ولكنه غير مسجل في بضاعة كمبيوتر العيادة!")
                 
+                # تصفير الرادار أوتوماتيكياً للاستعداد للصنف القادم فوراً
                 st.session_state['js_scanned_code'] = ""
                 st.query_params.clear()
                 st.rerun()
-        except Exception as e: pass
+        except Exception as e:
+            st.error(f"خطأ بمطابقة المخزن: {str(e)}")
 
         st.markdown("---")
         inv_cust_name = st.text_input("👤 اسم الدكتور / العيادة:", value="عميل نقدي", key="main_cust_name")
         inv_cust_phone = st.text_input("📱 رقم هاتف الدكتور:", key="main_cust_phone")
+
+        # الاختيار اليدوي الاحتياطي
+        with st.expander("➕ إضافة صنف يدوياً بدون كاميرا الباركود"):
+            manual_prod_name = st.selectbox("📦 اختر صنف من المخزن:", list(all_products_by_name.keys()))
+            if st.button("📥 ضيف الصنف المختار للسلة"):
+                m_prod = all_products_by_name[manual_prod_name]
+                found_in_cart = False
+                for idx, item in enumerate(st.session_state['cart']):
+                    if str(item['code']).strip() == str(m_prod['code']).strip():
+                        st.session_state['cart'][idx]['qty'] += 1
+                        found_in_cart = True
+                        break
+                if not found_in_cart:
+                    st.session_state['cart'].append({
+                        'code': m_prod['code'], 'name': m_prod['name'],
+                        'purchase_price': float(m_prod['purchase_price'] or 0), 'selling_price': float(m_prod['selling_price'] or 0),
+                        'qty': 1, 'max_qty': int(m_prod['quantity'] or 0)
+                    })
+                st.rerun()
 
         st.markdown("##### 🛒 قائمة الأصناف داخل الفاتورة الحالية:")
         if st.session_state['cart']:
@@ -211,7 +243,7 @@ else:
                 total_cost_price += item['purchase_price'] * item['qty']
                 
                 col_name, col_qty, col_del = st.columns([3, 2, 1])
-                col_name.write(f"**{item['name']}** \n سعر: {item['selling_price']:.2f}")
+                col_name.write(f"**{item['name']}** \n سعر: {item['selling_price']:.2f} ج.م")
                 new_qty = col_qty.number_input("الكمية:", min_value=1, max_value=item['max_qty'], value=item['qty'], key=f"qty_{item['code']}_{idx}")
                 st.session_state['cart'][idx]['qty'] = new_qty
                 if col_del.button("🗑️", key=f"del_{item['code']}_{idx}"):
@@ -223,6 +255,7 @@ else:
             final_invoice_total = total_bill_before_discount - discount_input
             final_invoice_profit = max(0.0, (total_bill_before_discount - total_cost_price) - discount_input)
             
+            st.markdown(f"💼 **الإجمالي المبدئي:** {total_bill_before_discount:.2f} ج.م")
             st.markdown(f"### 🎯 الصافي النهائي المطلوب: {final_invoice_total:.2f} ج.م")
             
             generated_inv_num = f"INV-MOB-{datetime.datetime.now().strftime('%M%S')}"
@@ -243,8 +276,12 @@ else:
                     st.session_state['cart'] = [] 
                     st.rerun()
                 except Exception as e: st.error(str(e))
+                
+            if st.button("❌ تفريغ السلة بالكامل وإلغاء المواد"):
+                st.session_state['cart'] = []
+                st.rerun()
         else:
-            st.info("🛒 السلة فارغة؛ وجه شريط الليزر فوق على الباركود لتجهيز الفاتورة!")
+            st.info("🛒 الفاتورة فارغة حالياً؛ وجه شريط الليزر فوق على باركود المنتجات وهتلاقيها بتتسجل ورا بعضها هنا أوتوماتيك!")
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 3️⃣ Tab 3: صنف جديد مع الرادار الخلفي ➕📸
@@ -261,7 +298,7 @@ else:
             new_p_code = st.text_input("📝 كود المنتج (امسحه بالرادار أعلاه أو اكتبه):", value=str(st.session_state['js_scanned_code']))
             new_p_name = st.text_input("📦 اسم المنتج / المادة:")
             new_p_cat = st.text_input("🗂️ الفئة:")
-            new_p_purchase = st.number_input("💰 سعر الشراء الاصلي (ج.م):", min_value=0.0)
+            new_p_purchase = st.number_input("💰 سعر الشراء الأصلي (ج.م):", min_value=0.0)
             new_p_selling = st.number_input("💵 سعر البيع للعيادات (ج.م):", min_value=0.0)
             new_p_qty = st.number_input("🔢 الكمية الابتدائية المتوفرة:", min_value=0, value=10)
             
@@ -286,7 +323,6 @@ else:
         if prod_res.data: st.dataframe(pd.DataFrame(prod_res.data), use_container_width=True, hide_index=True)
         
     with tab_customers:
-        # هنا تم إدراج تبويب سجل العملاء المطور بالكامل (إضافة وتعديل وحجز وواتساب) 👥🔥
         st.markdown("### 👥 إدارة العيادات وحجوزات الأصناف الكلية")
         with st.expander("➕ تسجيل دكتور / عيادة جديدة في السجل"):
             with st.form("add_new_customer_form"):
