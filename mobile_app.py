@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# mobile_app.py (تطبيق الويب المستقل للموبايل عبر السحاب - Dental Box 🚀)
+# mobile_app.py (تطبيق الويب المستقل للموبايل عبر السحاب - النسخة النهائية المصلحة 🚀)
 
 import streamlit as st
 import datetime
@@ -7,14 +7,14 @@ import urllib.parse
 from supabase import create_client
 import pandas as pd
 
-# 1. إعدادات الشاشة لتناسب الموبايل أوتوماتيكياً وتفتح بشكلCentered متناسق
+# 1. إعدادات الشاشة لتناسب الموبايل أوتوماتيكياً وتفتح بشكل Centered متناسق
 st.set_page_config(
     page_title="Dental Box Mobile",
     page_icon="🦷",
     layout="centered"
 )
 
-# 2. التنسيق البرمجي الفخم والدعم الكامل للتصفح باللغة العربية
+# 2. التنسيق البرمجي الفخم والدعم الكامل للتصفح باللغة العربية (تم تصحيح القفل الأمني هنا 👑)
 st.markdown("""
     <style>
     .main { text-align: right; direction: rtl; }
@@ -32,7 +32,7 @@ st.markdown("""
     .stTabs [data-baseweb="tab-list"] { direction: rtl; }
     .stTabs [data-baseweb="tab"] { font-weight: bold; font-size: 16px; }
     </style>
-""", unsafe_allowed_html=True)
+""", unsafe_allow_html=True)
 
 # 3. إعدادات ربط السيرفر السحابي المستقل (Supabase)
 SUPABASE_URL = "https://tjviltavsumuilevcokh.supabase.co"
@@ -45,7 +45,7 @@ def get_supabase_client():
 supabase = get_supabase_client()
 
 # العنوان الرئيسي الفخم للوحة الموبايل
-st.markdown("<h1 style='text-align: center;'>🦷 لوحة تحكم Dental Box للموبايل</h1>", unsafe_allowed_html=True)
+st.markdown("<h1 style='text-align: center;'>🦷 لوحة تحكم Dental Box للموبايل</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #64748b;'>نظام الإدارة السحابي المستقل دكتور محمد ترك</p>", unsafe_allowed_html=True)
 
 # تقسيم الشاشة لتبويبات (Tabs) مريحة للّمس على الموبايل
@@ -143,7 +143,7 @@ with tab_customers:
                     whatsapp_url = f"https://api.whatsapp.com/send?phone={c_phone.replace('+', '').replace(' ', '')}&text={encoded_msg}"
                     
                     # زرار أخضر ملوكي كبير وسهل اللمس للإرسال
-                    st.markdown(f'<a href="{whatsapp_url}" target="_blank"><button style="width:100%; background-color:#10b981; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer;">💬 إرسال تفاصيل الحجز عبر واتساب</button></a>', unsafe_allowed_html=True)
+                    st.markdown(f'<a href="{whatsapp_url}" target="_blank"><button style="width:100%; background-color:#10b981; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer;">💬 إرسال تفاصيل الحجز عبر واتساب</button></a>', unsafe_allow_html=True)
         else:
             st.info("سجل العملاء لا يحتوي على أطباء مسجلين.")
     except Exception as e:
@@ -173,7 +173,7 @@ with tab_purchase:
                     
                     # تحديث سحابي فوري يسمع في جهاز العيادة
                     supabase.table('products').update({'quantity': updated_total}).eq('code', code).execute()
-                    st.success(f"✅ تم الحفظ! الكمية الجديدة لـ ({selected_prod_name})صبحت: {updated_total} وحدة")
+                    st.success(f"✅ تم الحفظ! الكمية الجديدة لـ ({selected_prod_name}) أصبحت: {updated_total} وحدة")
                     st.rerun()
         else:
             st.warning("لا توجد منتجات لتزويدها، أضف أصناف أولاً من الكمبيوتر.")
