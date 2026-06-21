@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# mobile_app.py (النسخة الإمبراطورية النهائية - رادار الليزر المزدوج في الفاتورة والصنف الجديد 🚀📸)
+# mobile_app.py (النسخة الإمبراطورية النهائية - إجبار تشغيل الكاميرا الخلفية فقط للرادار 🚀📸)
 
 import streamlit as st
 import datetime
@@ -110,7 +110,7 @@ else:
         st.session_state['js_scanned_code'] = st.query_params["barcode"]
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 🧱 كود بناء الرادار الشامل والمحدث لتفادي مشاكل الحجب
+    # 🧱 كود بناء الرادار المحدث لإجبار الكاميرا الخلفية فقط 📸✨
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     def html_scanner_component(key_id):
         return f"""
@@ -119,7 +119,7 @@ else:
                 <div class="laser-line"></div>
                 <div id="reader_{key_id}" style="width: 100%;"></div>
             </div>
-            <p id="status_{key_id}" style="color: #10b981; font-family: sans-serif; font-weight: bold; margin-top: 8px;">📸 الرادار بيبحث لايف عن الباركود...</p>
+            <p id="status_{key_id}" style="color: #10b981; font-family: sans-serif; font-weight: bold; margin-top: 8px;">📸 الرادار بيبحث بالعدسة الخلفية...</p>
         </div>
         <script src="https://unpkg.com/html5-qrcode"></script>
         <script>
@@ -128,10 +128,12 @@ else:
                 window.parent.postMessage({{type: 'streamlit:set_query_params', query_params: {{barcode: decodedText}}}}, '*');
                 html5QrcodeScanner.clear();
             }}
-            // استخدام النسخة المحدثة والمستقرة لتفادي تعليق الشاشة البيضاء
+            
+            // قفل أمني لإجبار الكاميرا الخلفية (environment) ومنع السيلفي تماماً 👑
             const html5QrcodeScanner = new Html5QrcodeScanner("reader_{key_id}", {{ 
-                fps: 20, 
+                fps: 25, 
                 qrbox: {{ width: 250, height: 150 }},
+                videoConstraints: {{ facingMode: {{ exact: "environment" }} }}, // 👈 هنا الإجبار الفوري للكاميرا الخلفية
                 experimentalFeatures: {{ useBarCodeDetectorIfSupported: true }}
             }}, false);
             html5QrcodeScanner.render(onScanSuccess);
@@ -158,9 +160,8 @@ else:
     # 2️⃣ Tab 2: الفاتورة الجديدة مع الرادار المحدث 🛒
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_new_invoice:
-        st.markdown("### 🛒 تجهيز فاتورة مواد متعددة الأصناف")
+        st.markdown("### 🛒 تجهيز فاتورة مبيعات متعددة الأصناف")
         
-        # استدعاء السكنر في الفاتورة
         components.html(html_scanner_component("invoice"), height=310)
 
         try:
@@ -246,19 +247,17 @@ else:
             st.info("🛒 السلة فارغة؛ وجه شريط الليزر فوق على الباركود لتجهيز الفاتورة!")
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 3️⃣ Tab 3: صنف جديد مع دمج الرادار الملوكي لايف ➕📸🎯
+    # 3️⃣ Tab 3: صنف جديد مع الرادار الخلفي ➕📸
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_add_product:
         st.markdown("### ➕ تسجيل صنف جديد في مخزن مستلزمات الأسنان")
         
-        # 🔥 تم إضافة كاميرا الرادار بشريط الليزر هنا أيضاً لملء الكود تلقائياً
         components.html(html_scanner_component("add_product"), height=310)
         
         if st.session_state['js_scanned_code']:
             st.success(f"🎯 تم التقاط كود الصنف الجديد بنجاح: {st.session_state['js_scanned_code']}")
 
         with st.form("add_product_form_js"):
-            # تملأ الخانة أوتوماتيكياً بالكود الممسوح بالسكنر
             new_p_code = st.text_input("📝 كود المنتج (امسحه بالرادار أعلاه أو اكتبه):", value=str(st.session_state['js_scanned_code']))
             new_p_name = st.text_input("📦 اسم المنتج / المادة:")
             new_p_cat = st.text_input("🗂️ الفئة:")
@@ -275,11 +274,9 @@ else:
                             'purchase_price': new_p_purchase, 'selling_price': new_p_selling, 'quantity': new_p_qty
                         }).execute()
                         st.success(f"✅ تم إدراج الصنف الجديد ({new_p_name}) بنجاح!")
-                        st.session_state['js_scanned_code'] = "" # تصفير الكود بعد النجاح
+                        st.session_state['js_scanned_code'] = "" 
                         st.rerun()
                     except Exception as e: st.error(f"خطأ بالحفظ: {str(e)}")
-                else:
-                    st.warning("⚠️ يرجى ملء حقول الكود والاسم!")
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 4️⃣ & 5️⃣ الجرد والعملاء
@@ -289,8 +286,55 @@ else:
         if prod_res.data: st.dataframe(pd.DataFrame(prod_res.data), use_container_width=True, hide_index=True)
         
     with tab_customers:
-        cust_res = supabase.table('customers').select('id, name, phone, balance').order('id').execute()
-        if cust_res.data:
-            for c in cust_res.data:
-                with st.expander(f"👤 د. {c['name']} (ID: {c['id']})"):
-                    st.write(f"📱 جوال: {c['phone']} | طلبات: {c.get('balance', 'لا يوجد')}")
+        # هنا تم إدراج تبويب سجل العملاء المطور بالكامل (إضافة وتعديل وحجز وواتساب) 👥🔥
+        st.markdown("### 👥 إدارة العيادات وحجوزات الأصناف الكلية")
+        with st.expander("➕ تسجيل دكتور / عيادة جديدة في السجل"):
+            with st.form("add_new_customer_form"):
+                c_new_name = st.text_input("👤 اسم الطبيب / العيادة:")
+                c_new_phone = st.text_input("📱 رقم الجوال:")
+                c_new_balance = st.text_area("📋 المنتجات المحجوزة مبدئياً:")
+                if st.form_submit_button("💾 حفظ الطبيب الجديد للسحاب"):
+                    if c_new_name and c_new_phone:
+                        try:
+                            supabase.table('customers').insert({'name': c_new_name, 'phone': c_new_phone, 'balance': c_new_balance}).execute()
+                            st.success(f"✅ تم تسجيل د. {c_new_name} بنجاح!")
+                            st.rerun()
+                        except Exception as e: st.error(f"خطأ: {str(e)}")
+        
+        st.markdown("---")
+        try:
+            cust_res = supabase.table('customers').select('id, name, phone, balance').order('id').execute()
+            if cust_res.data:
+                for cust in cust_res.data:
+                    c_id = cust['id']
+                    c_name = cust['name']
+                    c_phone = cust['phone']
+                    c_res = str(cust.get('balance', '') or '').strip()
+                    if not c_res: c_res = "لا توجد طلبات محجوزة حالياً"
+                    
+                    with st.expander(f"👤 د. {c_name} (ID: {c_id})"):
+                        st.write(f"📱 **الجوال:** {c_phone}")
+                        st.markdown(f"📋 **الحجوزات:** `{c_res}`")
+                        st.markdown("---")
+                        edit_name = st.text_input("الاسم:", value=c_name, key=f"name_{c_id}")
+                        edit_phone = st.text_input("رقم الجوال:", value=c_phone, key=f"phone_{c_id}")
+                        edit_balance = st.text_area("المنتجات المحجوزة للعيادة:", value=c_res if c_res != "لا توجد طلبات محجوزة حالياً" else "", key=f"bal_{c_id}")
+                        
+                        if st.button("💾 حفظ التعديلات والحجوزات أونلاين", key=f"save_{c_id}", use_container_width=True):
+                            supabase.table('customers').update({'name': edit_name, 'phone': edit_phone, 'balance': edit_balance}).eq('id', c_id).execute()
+                            st.success("✅ تم التحديث بنجاح!")
+                            st.rerun()
+                        
+                        st.markdown("---")
+                        msg = (
+                            f"🦷 *نظام Dental Box لمستلزمات الأسنان* 🦷\n"
+                            f"━━━━━━━━━━━━━━━━━━━\n"
+                            f"أهلاً دكتور *{c_name}*، يسعدنا تواصلكم معنا عبر النظام السحابي.\n\n"
+                            f"🆔 *رقم المعرف الخاص بك:* {c_id}\n"
+                            f"📋 *المنتجات والمواد المحجوزة لعيادتكم حالياً:*\n• {edit_balance.replace(' ، ', '\n• ').replace(' || ', '\n• ')}\n\n"
+                            f"━━━━━━━━━━━━━━━━━━━\n"
+                            f"تم قيد حجزكم وتجهيز طلباتكم مسبقاً بنجاح دكتور."
+                        )
+                        whatsapp_url = f"https://api.whatsapp.com/send?phone={edit_phone.replace('+', '').replace(' ', '')}&text={urllib.parse.quote(msg)}"
+                        st.markdown(f'<a href="{whatsapp_url}" target="_blank"><button style="width:100%; background-color:#10b981; color:white; border:none; padding:12px; border-radius:10px; font-weight:bold; cursor:pointer;">💬 إرسال تفاصيل الحجز عبر واتساب</button></a>', unsafe_allow_html=True)
+        except Exception as e: st.error(str(e))
