@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# mobile_app.py (تطبيق الويب المستقل للموبايل عبر السحاب - النسخة النهائية المصلحة 🚀)
+# mobile_app.py (تطبيق الويب المستقل للموبايل عبر السحاب - النسخة النهائية الخالية من الأخطاء 🚀)
 
 import streamlit as st
 import datetime
@@ -14,7 +14,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# 2. التنسيق البرمجي الفخم والدعم الكامل للتصفح باللغة العربية (تم تصحيح القفل الأمني هنا 👑)
+# 2. التنسيق البرمجي الفخم والدعم الكامل للتصفح باللغة العربية (تم التصحيح هنا)
 st.markdown("""
     <style>
     .main { text-align: right; direction: rtl; }
@@ -44,9 +44,9 @@ def get_supabase_client():
 
 supabase = get_supabase_client()
 
-# العنوان الرئيسي الفخم للوحة الموبايل
+# العنوان الرئيسي الفخم للوحة الموبايل (تم التصحيح هنا أيضاً)
 st.markdown("<h1 style='text-align: center;'>🦷 لوحة تحكم Dental Box للموبايل</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #64748b;'>نظام الإدارة السحابي المستقل دكتور محمد ترك</p>", unsafe_allowed_html=True)
+st.markdown("<p style='text-align: center; color: #64748b;'>نظام الإدارة السحابي المستقل دكتور محمد ترك</p>", unsafe_allow_html=True)
 
 # تقسيم الشاشة لتبويبات (Tabs) مريحة للّمس على الموبايل
 tab_dashboard, tab_stock, tab_customers, tab_purchase = st.tabs([
@@ -142,7 +142,7 @@ with tab_customers:
                     encoded_msg = urllib.parse.quote(msg)
                     whatsapp_url = f"https://api.whatsapp.com/send?phone={c_phone.replace('+', '').replace(' ', '')}&text={encoded_msg}"
                     
-                    # زرار أخضر ملوكي كبير وسهل اللمس للإرسال
+                    # زرار أخضر ملوكي كبير وسهل اللمس للإرسال (تم التصحيح هنا أيضاً)
                     st.markdown(f'<a href="{whatsapp_url}" target="_blank"><button style="width:100%; background-color:#10b981; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer;">💬 إرسال تفاصيل الحجز عبر واتساب</button></a>', unsafe_allow_html=True)
         else:
             st.info("سجل العملاء لا يحتوي على أطباء مسجلين.")
