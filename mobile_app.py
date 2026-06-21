@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# mobile_app.py (النسخة الإمبراطورية النهائية المصلحة - الربط التلقائي الفوري للباركود بالسلة 🚀🛒📸)
+# mobile_app.py (النسخة الإمبراطورية النهائية المستقرة - حل مشكلة حفظ السلة والتسجيل الفوري 🚀🛒📸)
 
 import streamlit as st
 import datetime
@@ -73,9 +73,8 @@ def get_supabase_client():
 
 supabase = get_supabase_client()
 
-# تهيئة المتغيرات المؤقتة وحالة السلة
+# 🔥 القفل الأمني لحفظ الذاكرة والسلة الكلية ومنع تصفيرها نهائياً
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
-if 'js_scanned_code' not in st.session_state: st.session_state['js_scanned_code'] = ""
 if 'cart' not in st.session_state: st.session_state['cart'] = [] 
 
 # 🚪 شاشة تسجيل الدخول
@@ -105,14 +104,48 @@ else:
         "📊 الأرباح", "🛒 فاتورة جديدة", "➕ صنف جديد", "📦 جرد المخزن", "👥 العملاء"
     ])
 
-    # 📥 التقاط الكود المقروء من الرادار وتحويله لنص صريح ونظيف فوراً لحل مشكلة عدم التسجيل 🎯
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # ⚡ معالجة الكود الممسوح فوراً وحفظه بالسلة قبل أي عملية تحديث لشاشة الموبايل ⚡
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     query_params = st.query_params
     if "barcode" in query_params:
         raw_code = query_params["barcode"]
-        if isinstance(raw_code, list):
-            st.session_state['js_scanned_code'] = str(raw_code[0]).strip()
-        else:
-            st.session_state['js_scanned_code'] = str(raw_code).strip()
+        scanned_code_str = str(raw_code[0] if isinstance(raw_code, list) else raw_code).strip()
+        
+        if scanned_code_str:
+            try:
+                # جلب بضاعة السحاب للتأكد من وجود الكود
+                p_check = supabase.table('products').select('code, name, purchase_price, selling_price, quantity').eq('code', scanned_code_str).execute()
+                
+                if p_check.data:
+                    matched_p = p_check.data[0]
+                    
+                    # التحقق والزيادة في السلة المحمية
+                    found_in_cart = False
+                    for idx, item in enumerate(st.session_state['cart']):
+                        if str(item['code']).strip() == scanned_code_str:
+                            st.session_state['cart'][idx]['qty'] += 1
+                            found_in_cart = True
+                            break
+                    
+                    if not found_in_cart:
+                        st.session_state['cart'].append({
+                            'code': matched_p['code'], 
+                            'name': matched_p['name'],
+                            'purchase_price': float(matched_p['purchase_price'] or 0), 
+                            'selling_price': float(matched_p['selling_price'] or 0),
+                            'qty': 1, 
+                            'max_qty': int(matched_p['quantity'] or 0)
+                        })
+                    st.toast(f"📥 تم بنجاح إضافة {matched_p['name']} للفاتورة!")
+                else:
+                    st.error(f"⚠️ الكود ({scanned_code_str}) لُقط بنجاح، لكنه غير مسجل بالسيستم!")
+            except Exception as e:
+                st.error(f"خطأ سحابي: {str(e)}")
+        
+        # تنظيف الرابط الفوري لإعادة تهيئة الرادار للصنف القادم
+        st.query_params.clear()
+        st.rerun()
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 🧱 كود بناء الرادار المحدث لإجبار الكاميرا الخلفية 📸✨
@@ -161,77 +194,19 @@ else:
         except: pass
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 2️⃣ Tab 2: الفاتورة الجديدة (تم إصلاح تسجيل السلة التلقائي هنا 🔥🛒)
+    # 2️⃣ Tab 2: الفاتورة الجديدة (السلة المحمية والحديدية 🛒🔥)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_new_invoice:
         st.markdown("### 🛒 تجهيز فاتورة مبيعات متعددة الأصناف")
         
+        # تشغيل الرادار
         components.html(html_scanner_component("invoice"), height=310)
-
-        try:
-            # جلب المنتجات من السحاب لمطابقتها مع الباركود الممسوح
-            prod_res = supabase.table('products').select('code, name, purchase_price, selling_price, quantity').execute()
-            all_products_dict = {str(p['code']).strip(): p for p in prod_res.data} if prod_res.data else {}
-            all_products_by_name = {p['name']: p for p in prod_res.data} if prod_res.data else {}
-            
-            # 🔥 التعديل الجوهري: الربط الفوري والسلس مع السلة بمجرد لقط الكود
-            if st.session_state['js_scanned_code']:
-                scanned_code_str = str(st.session_state['js_scanned_code']).strip()
-                
-                if scanned_code_str in all_products_dict:
-                    matched_prod = all_products_dict[scanned_code_str]
-                    
-                    # التحقق إذا كان الصنف مضاف مسبقاً لزيادة الكمية فقط
-                    found_in_cart = False
-                    for idx, item in enumerate(st.session_state['cart']):
-                        if str(item['code']).strip() == scanned_code_str:
-                            st.session_state['cart'][idx]['qty'] += 1
-                            found_in_cart = True
-                            break
-                    
-                    if not found_in_cart:
-                        st.session_state['cart'].append({
-                            'code': matched_prod['code'], 
-                            'name': matched_prod['name'],
-                            'purchase_price': float(matched_prod['purchase_price'] or 0), 
-                            'selling_price': float(matched_prod['selling_price'] or 0),
-                            'qty': 1, 
-                            'max_qty': int(matched_prod['quantity'] or 0)
-                        })
-                    st.toast(f"📥 تم تسجيل: {matched_prod['name']} جوه الفاتورة الكلية!")
-                else:
-                    st.error(f"⚠️ الباركود مسح بنجاح ({scanned_code_str}) ولكنه غير مسجل في بضاعة كمبيوتر العيادة!")
-                
-                # تصفير الرادار أوتوماتيكياً للاستعداد للصنف القادم فوراً
-                st.session_state['js_scanned_code'] = ""
-                st.query_params.clear()
-                st.rerun()
-        except Exception as e:
-            st.error(f"خطأ بمطابقة المخزن: {str(e)}")
 
         st.markdown("---")
         inv_cust_name = st.text_input("👤 اسم الدكتور / العيادة:", value="عميل نقدي", key="main_cust_name")
         inv_cust_phone = st.text_input("📱 رقم هاتف الدكتور:", key="main_cust_phone")
 
-        # الاختيار اليدوي الاحتياطي
-        with st.expander("➕ إضافة صنف يدوياً بدون كاميرا الباركود"):
-            manual_prod_name = st.selectbox("📦 اختر صنف من المخزن:", list(all_products_by_name.keys()))
-            if st.button("📥 ضيف الصنف المختار للسلة"):
-                m_prod = all_products_by_name[manual_prod_name]
-                found_in_cart = False
-                for idx, item in enumerate(st.session_state['cart']):
-                    if str(item['code']).strip() == str(m_prod['code']).strip():
-                        st.session_state['cart'][idx]['qty'] += 1
-                        found_in_cart = True
-                        break
-                if not found_in_cart:
-                    st.session_state['cart'].append({
-                        'code': m_prod['code'], 'name': m_prod['name'],
-                        'purchase_price': float(m_prod['purchase_price'] or 0), 'selling_price': float(m_prod['selling_price'] or 0),
-                        'qty': 1, 'max_qty': int(m_prod['quantity'] or 0)
-                    })
-                st.rerun()
-
+        # عرض محتويات السلة الحديدية التي لا تقبل الحذف مع الـ Rerun
         st.markdown("##### 🛒 قائمة الأصناف داخل الفاتورة الحالية:")
         if st.session_state['cart']:
             total_bill_before_discount = 0.0
@@ -244,8 +219,10 @@ else:
                 
                 col_name, col_qty, col_del = st.columns([3, 2, 1])
                 col_name.write(f"**{item['name']}** \n سعر: {item['selling_price']:.2f} ج.م")
+                
                 new_qty = col_qty.number_input("الكمية:", min_value=1, max_value=item['max_qty'], value=item['qty'], key=f"qty_{item['code']}_{idx}")
                 st.session_state['cart'][idx]['qty'] = new_qty
+                
                 if col_del.button("🗑️", key=f"del_{item['code']}_{idx}"):
                     st.session_state['cart'].pop(idx)
                     st.rerun()
@@ -281,21 +258,22 @@ else:
                 st.session_state['cart'] = []
                 st.rerun()
         else:
-            st.info("🛒 الفاتورة فارغة حالياً؛ وجه شريط الليزر فوق على باركود المنتجات وهتلاقيها بتتسجل ورا بعضها هنا أوتوماتيك!")
+            st.info("🛒 الفاتورة فارغة حالياً؛ وجه شريط الليزر فوق على باركود المنتجات وهتلاقيها بتتسجل أوتوماتيك!")
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 3️⃣ Tab 3: صنف جديد مع الرادار الخلفي ➕📸
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_add_product:
         st.markdown("### ➕ تسجيل صنف جديد في مخزن مستلزمات الأسنان")
-        
         components.html(html_scanner_component("add_product"), height=310)
         
-        if st.session_state['js_scanned_code']:
-            st.success(f"🎯 تم التقاط كود الصنف الجديد بنجاح: {st.session_state['js_scanned_code']}")
+        # عرض الكود الممسوح في الخانة
+        scanned_new = ""
+        if 'js_scanned_code' in st.session_state and st.session_state['js_scanned_code']:
+            scanned_new = st.session_state['js_scanned_code']
 
         with st.form("add_product_form_js"):
-            new_p_code = st.text_input("📝 كود المنتج (امسحه بالرادار أعلاه أو اكتبه):", value=str(st.session_state['js_scanned_code']))
+            new_p_code = st.text_input("📝 كود المنتج (امسحه بالرادار أعلاه أو اكتبه):", value=scanned_new)
             new_p_name = st.text_input("📦 اسم المنتج / المادة:")
             new_p_cat = st.text_input("🗂️ الفئة:")
             new_p_purchase = st.number_input("💰 سعر الشراء الأصلي (ج.م):", min_value=0.0)
@@ -311,7 +289,6 @@ else:
                             'purchase_price': new_p_purchase, 'selling_price': new_p_selling, 'quantity': new_p_qty
                         }).execute()
                         st.success(f"✅ تم إدراج الصنف الجديد ({new_p_name}) بنجاح!")
-                        st.session_state['js_scanned_code'] = "" 
                         st.rerun()
                     except Exception as e: st.error(f"خطأ بالحفظ: {str(e)}")
 
