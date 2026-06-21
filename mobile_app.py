@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# mobile_app.py (النسخة الإمبراطورية النهائية المستقرة - حل مشكلة حفظ السلة والتسجيل الفوري 🚀🛒📸)
+# mobile_app.py (النسخة الإمبراطورية النهائية المستقرة - الربط اللحظي المباشر للسكنر مع السلة 🚀🛒📸)
 
 import streamlit as st
 import datetime
@@ -73,9 +73,9 @@ def get_supabase_client():
 
 supabase = get_supabase_client()
 
-# 🔥 القفل الأمني لحفظ الذاكرة والسلة الكلية ومنع تصفيرها نهائياً
+# تهيئة متغيرات الجلسة والسلة الحديدية الثابتة
 if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
-if 'cart' not in st.session_state: st.session_state['cart'] = [] 
+if 'cart' not in st.session_state: st.session_state['cart'] = []
 
 # 🚪 شاشة تسجيل الدخول
 if not st.session_state['logged_in']:
@@ -105,8 +105,39 @@ else:
     ])
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # ⚡ معالجة الكود الممسوح فوراً وحفظه بالسلة قبل أي عملية تحديث لشاشة الموبايل ⚡
+    # 🧱 كود بناء الرادار الذكي المتصل مباشرة بالسلة دون المرور بالرابط لقفل التعليق 📸
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def html_scanner_component(key_id):
+        return f"""
+        <div style="width: 100%; text-align: center;">
+            <div class="scanner-container">
+                <div class="laser-line"></div>
+                <div id="reader_{key_id}" style="width: 100%;"></div>
+            </div>
+            <p id="status_{key_id}" style="color: #10b981; font-family: sans-serif; font-weight: bold; margin-top: 8px;">📸 الرادار يبحث بالعدسة الخلفية لايف...</p>
+        </div>
+        <script src="https://unpkg.com/html5-qrcode"></script>
+        <script>
+            function onScanSuccess(decodedText, decodedResult) {{
+                document.getElementById("status_{key_id}").innerText = "🎯 تم اللقط الفوري: " + decodedText;
+                
+                // التعديل الملوكي: إرسال مباشر للنظام كـ كود باركود صريح
+                const url = new URL(window.location.href);
+                url.searchParams.set('barcode', decodedText);
+                window.parent.location.href = url.toString();
+            }}
+            
+            const html5QrcodeScanner = new Html5QrcodeScanner("reader_{key_id}", {{ 
+                fps: 30, 
+                qrbox: {{ width: 260, height: 160 }},
+                videoConstraints: {{ facingMode: {{ exact: "environment" }} }},
+                experimentalFeatures: {{ useBarCodeDetectorIfSupported: true }}
+            }}, false);
+            html5QrcodeScanner.render(onScanSuccess);
+        </script>
+        """
+
+    # 📥 جلب بضاعة السحاب أوتوماتيكياً وتحليل الباركود الملتقط وتثبيته في السلة الحديدية فوراً
     query_params = st.query_params
     if "barcode" in query_params:
         raw_code = query_params["barcode"]
@@ -114,13 +145,13 @@ else:
         
         if scanned_code_str:
             try:
-                # جلب بضاعة السحاب للتأكد من وجود الكود
+                # التحقق السحابي السريع
                 p_check = supabase.table('products').select('code, name, purchase_price, selling_price, quantity').eq('code', scanned_code_str).execute()
                 
                 if p_check.data:
                     matched_p = p_check.data[0]
                     
-                    # التحقق والزيادة في السلة المحمية
+                    # البحث داخل السلة وإضافة الكمية أو تسجيل صنف جديد تماماً
                     found_in_cart = False
                     for idx, item in enumerate(st.session_state['cart']):
                         if str(item['code']).strip() == scanned_code_str:
@@ -137,45 +168,15 @@ else:
                             'qty': 1, 
                             'max_qty': int(matched_p['quantity'] or 0)
                         })
-                    st.toast(f"📥 تم بنجاح إضافة {matched_p['name']} للفاتورة!")
+                    st.toast(f"📥 تم إضافة {matched_p['name']} بنجاح!")
                 else:
-                    st.error(f"⚠️ الكود ({scanned_code_str}) لُقط بنجاح، لكنه غير مسجل بالسيستم!")
+                    st.sidebar.error(f"⚠️ الباركود ({scanned_code_str}) غير مدرج بمخزن الكمبيوتر!")
             except Exception as e:
-                st.error(f"خطأ سحابي: {str(e)}")
+                st.sidebar.error(f"خطأ: {str(e)}")
         
-        # تنظيف الرابط الفوري لإعادة تهيئة الرادار للصنف القادم
+        # تنظيف فوري لبارامترات الرابط لمنع حلقات التكرار المفرغة وحفظ السلة
         st.query_params.clear()
         st.rerun()
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 🧱 كود بناء الرادار المحدث لإجبار الكاميرا الخلفية 📸✨
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    def html_scanner_component(key_id):
-        return f"""
-        <div style="width: 100%; text-align: center;">
-            <div class="scanner-container">
-                <div class="laser-line"></div>
-                <div id="reader_{key_id}" style="width: 100%;"></div>
-            </div>
-            <p id="status_{key_id}" style="color: #10b981; font-family: sans-serif; font-weight: bold; margin-top: 8px;">📸 الرادار يبحث بالعدسة الخلفية...</p>
-        </div>
-        <script src="https://unpkg.com/html5-qrcode"></script>
-        <script>
-            function onScanSuccess(decodedText, decodedResult) {{
-                document.getElementById("status_{key_id}").innerText = "🎯 تم اللقط: " + decodedText;
-                window.parent.postMessage({{type: 'streamlit:set_query_params', query_params: {{barcode: decodedText}}}}, '*');
-                html5QrcodeScanner.clear();
-            }}
-            
-            const html5QrcodeScanner = new Html5QrcodeScanner("reader_{key_id}", {{ 
-                fps: 25, 
-                qrbox: {{ width: 250, height: 150 }},
-                videoConstraints: {{ facingMode: {{ exact: "environment" }} }},
-                experimentalFeatures: {{ useBarCodeDetectorIfSupported: true }}
-            }}, false);
-            html5QrcodeScanner.render(onScanSuccess);
-        </script>
-        """
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # 1️⃣ Tab 1: لوحة الإحصائيات والأرباح
@@ -194,19 +195,18 @@ else:
         except: pass
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 2️⃣ Tab 2: الفاتورة الجديدة (السلة المحمية والحديدية 🛒🔥)
+    # 2️⃣ Tab 2: الفاتورة الجديدة (السلة المحمية المستقرة تماماً 🛒🔥)
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_new_invoice:
         st.markdown("### 🛒 تجهيز فاتورة مبيعات متعددة الأصناف")
         
-        # تشغيل الرادار
+        # تشغيل الرادار في صفحة المبيعات
         components.html(html_scanner_component("invoice"), height=310)
 
         st.markdown("---")
         inv_cust_name = st.text_input("👤 اسم الدكتور / العيادة:", value="عميل نقدي", key="main_cust_name")
         inv_cust_phone = st.text_input("📱 رقم هاتف الدكتور:", key="main_cust_phone")
 
-        # عرض محتويات السلة الحديدية التي لا تقبل الحذف مع الـ Rerun
         st.markdown("##### 🛒 قائمة الأصناف داخل الفاتورة الحالية:")
         if st.session_state['cart']:
             total_bill_before_discount = 0.0
@@ -267,7 +267,6 @@ else:
         st.markdown("### ➕ تسجيل صنف جديد في مخزن مستلزمات الأسنان")
         components.html(html_scanner_component("add_product"), height=310)
         
-        # عرض الكود الممسوح في الخانة
         scanned_new = ""
         if 'js_scanned_code' in st.session_state and st.session_state['js_scanned_code']:
             scanned_new = st.session_state['js_scanned_code']
