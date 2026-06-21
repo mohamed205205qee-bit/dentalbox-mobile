@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# mobile_app.py (النسخة الإمبراطورية المستقرة - سكنر الباركود السريع بدون تعليق 🚀)
+# mobile_app.py (النسخة الإمبراطورية النهائية - إسكانر الكاميرا اللايف الفوري بدون أزرار 🚀📸)
 
 import streamlit as st
 import datetime
@@ -7,22 +7,19 @@ import urllib.parse
 import hashlib
 from supabase import create_client
 import pandas as pd
-import cv2
-import numpy as np
+import streamlit.components.v1 as components
 
-# 1. إعدادات الشاشة لتناسب الموبايل أوتوماتيكياً وتفتح بشكل Centered متناسق
+# 1. إعدادات الشاشة لتناسب الموبايل أوتوماتيكياً
 st.set_page_config(
     page_title="Dental Box Mobile",
     page_icon="🦷",
     layout="centered"
 )
 
-# 2. التنسيق البرمجي الفخم والإضاءة الكاملة للكروت والخطوط البيضاء الواضحة 🌟
+# 2. التنسيق البرمجي الملوكي وألوان الكروت المضيئة 🌟
 st.markdown("""
     <style>
     .main { text-align: right; direction: rtl; }
-    
-    /* ستايل كروت الإحصائيات المضيئة المصلحة تماماً */
     div[data-testid="stMetric"] {
         background: linear-gradient(135deg, #1e3a8a, #0284c7) !important;
         border: 2px solid #38bdf8 !important;
@@ -31,29 +28,12 @@ st.markdown("""
         text-align: center !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
-    div[data-testid="stMetricLabel"] { 
-        color: #e0f2fe !important; 
-        font-weight: bold !important; 
-        font-size: 16px !important; 
-    }
-    div[data-testid="stMetricValue"] { 
-        color: #ffffff !important; 
-        font-size: 26px !important; 
-        font-weight: 900 !important;
-    }
-    
+    div[data-testid="stMetricLabel"] { color: #e0f2fe !important; font-weight: bold !important; font-size: 16px !important; }
+    div[data-testid="stMetricValue"] { color: #ffffff !important; font-size: 26px !important; font-weight: 900 !important; }
     h1, h2, h3, p, div, label { text-align: right; direction: rtl; font-family: 'Cairo', sans-serif; }
     .stTabs [data-baseweb="tab-list"] { direction: rtl; }
     .stTabs [data-baseweb="tab"] { font-weight: bold; font-size: 15px; }
-    
-    /* تنسيق الأزرار الملوكية للموبايل */
-    .stButton>button {
-        background-color: #1a9eff !important;
-        color: white !important;
-        font-weight: bold !important;
-        border-radius: 10px !important;
-        border: none !important;
-    }
+    .stButton>button { background-color: #1a9eff !important; color: white !important; font-weight: bold !important; border-radius: 10px !important; border: none !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -67,282 +47,195 @@ def get_supabase_client():
 
 supabase = get_supabase_client()
 
-# 🔐 إدارة جلسة تسجيل الدخول لحماية أرباحك وبياناتك
-if 'logged_in' not in st.session_state:
-    st.session_state['logged_in'] = False
-if 'scanned_code' not in st.session_state:
-    st.session_state['scanned_code'] = ""
+if 'logged_in' not in st.session_state: st.session_state['logged_in'] = False
+if 'js_scanned_code' not in st.session_state: st.session_state['js_scanned_code'] = ""
 
-# 🚪 شاشة تسجيل الدخول المرتبطة بجدول الموظفين أونلاين
+# 🚪 شاشة تسجيل الدخول
 if not st.session_state['logged_in']:
     st.markdown("<h2 style='text-align: center;'>🔐 تسجيل الدخول للنظام السحابي</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #64748b;'>يرجى إدخال بيانات حسابك المعتمد في Dental Box</p>", unsafe_allow_html=True)
-    
     with st.form("login_form"):
         username_input = st.text_input("👤 اسم المستخدم (اليوزر):")
         password_input = st.text_input("🔑 كلمة المرور (الباسورد):", type="password")
         submit_login = st.form_submit_button("🔓 دخول آمن للسيستم", use_container_width=True)
-        
         if submit_login:
-            if username_input and password_input:
-                try:
-                    hashed_input = hashlib.sha256(password_input.encode()).hexdigest().lower()
-                    res = supabase.table('users').select('password, full_name').eq('username', username_input).execute()
-                    
-                    if res.data and res.data[0]['password'].lower() == hashed_input:
-                        st.session_state['logged_in'] = True
-                        st.session_state['user_full_name'] = res.data[0]['full_name']
-                        st.success(f"🎉 أهلاً بك دكتور {res.data[0]['full_name']}...")
-                        st.rerun()
-                    else:
-                        st.error("❌ اسم المستخدم أو كلمة المرور غير صحيحة!")
-                except Exception as e:
-                    st.error(f"فشل التحقق الأمني: {str(e)}")
+            hashed_input = hashlib.sha256(password_input.encode()).hexdigest().lower()
+            res = supabase.table('users').select('password, full_name').eq('username', username_input).execute()
+            if res.data and res.data[0]['password'].lower() == hashed_input:
+                st.session_state['logged_in'] = True
+                st.session_state['user_full_name'] = res.data[0]['full_name']
+                st.rerun()
             else:
-                st.warning("⚠️ يرجى ملء الحقول المطلوبة!")
+                st.error("❌ بيانات الدخول غير صحيحة!")
 else:
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 🦷 فتح النظام الإمبراطوري بالكامل بعد الدخول الناجح
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     st.markdown("<h1 style='text-align: center;'>🦷 لوحة تحكم Dental Box الكاملة</h1>", unsafe_allow_html=True)
     
-    if st.sidebar.button("🚪 خروج آمن"):
-        st.session_state['logged_in'] = False
-        st.rerun()
+    # التقاط الكود المرسل من كاميرا الجافا سكريبت اللايف
+    query_params = st.query_params
+    if "barcode" in query_params:
+        st.session_state['js_scanned_code'] = query_params["barcode"]
 
     tab_dashboard, tab_new_invoice, tab_add_product, tab_stock, tab_customers = st.tabs([
-        "📊 الأرباح", 
-        "🛒 فاتورة جديدة", 
-        "➕ صنف جديد",
-        "📦 جرد المخزن", 
-        "👥 العملاء"
+        "📊 الأرباح", "🛒 فاتورة جديدة", "➕ صنف جديد", "📦 جرد المخزن", "👥 العملاء"
     ])
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 1️⃣ Tab 1: لوحة التحكم المالي والأرباح
+    # دالة السحر: بناء الإسكانر التلقائي الذكي بدون أزرار 📸✨
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    def render_live_scanner_component():
+        st.markdown("##### 📸 رادار مسح الباركود التلقائي (Live Video):")
+        
+        # كود جافا سكريبت مدمج بيفتح الكاميرا الخلفية وبيعمل Scan فوري لحظي
+        scanner_html = """
+        <div style="width: 100%; text-align: center;">
+            <div id="reader" style="width: 100%; max-width: 400px; margin: auto; border-radius: 12px; overflow: hidden;"></div>
+            <p id="status" style="color: #64748b; font-family: sans-serif; margin-top: 8px;">جاري تشغيل عدسة الرادار...</p>
+        </div>
+        <script src="https://unpkg.com/html5-qrcode"></script>
+        <script>
+            const html5QrcodeScanner = new Html5Qrcode("reader");
+            const config = { fps: 20, qrbox: { width: 250, height: 150 } };
+            
+            // فتح الكاميرا الخلفية للموبايل علطول
+            Html5Qrcode.getCameras().then(devices => {
+                if (devices && devices.length) {
+                    let backCameraId = devices[0].id;
+                    for (let device of devices) {
+                        if (device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear')) {
+                            backCameraId = device.id;
+                            break;
+                        }
+                    }
+                    
+                    html5QrcodeScanner.start(
+                        backCameraId, 
+                        config,
+                        (decodedText) => {
+                            document.getElementById("status").innerText = "🎯 تم اللقط: " + decodedText;
+                            html5QrcodeScanner.stop().then(() => {
+                                // إرسال الكود فوراً لصفحة المراقبة
+                                window.parent.postMessage({type: 'streamlit:set_query_params', query_params: {barcode: decodedText}}, '*');
+                            });
+                        },
+                        (errorMessage) => { /* مراقبة صامتة */ }
+                    );
+                }
+            }).catch(err => {
+                document.getElementById("status").innerText = "⚠️ برجاء إعطاء إذن الكاميرا للمتصفح!";
+            });
+        </script>
+        """
+        components.html(scanner_html, height=320)
+        if st.session_state['js_scanned_code']:
+            st.success(f"🎯 الرادار لقط كود: {st.session_state['js_scanned_code']}")
+            if st.button("🔄 إعادة مسح صنف آخر"):
+                st.session_state['js_scanned_code'] = ""
+                st.query_params.clear()
+                st.rerun()
+
+    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    # 1️⃣ Tab 1: لوحة التحكم والماليات
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_dashboard:
-        st.markdown("### 📊 الأداء المالي العام")
         try:
             res = supabase.table('invoices').select('final_total, total_profit, date').execute()
-            invoices = res.data if res.data else []
-            
             today_str = datetime.date.today().strftime('%Y-%m-%d')
-            today_revenue = 0.0
-            all_time_profit = 0.0
-            total_inv_count = len(invoices)
-            
-            for inv in invoices:
-                final_total = float(inv.get('final_total', 0) or 0)
-                profit_val = float(inv.get('total_profit', 0) or 0)
-                all_time_profit += profit_val
-                if inv.get('date') == today_str:
-                    today_revenue += final_total
-                    
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric(label="💰 مبيعات اليوم الحالي", value=f"{today_revenue:.2f} ج.م")
-            with col2:
-                st.metric(label="💸 إجمالي صافي الأرباح", value=f"{all_time_profit:.2f} ج.م")
-            st.metric(label="📄 إجمالي عدد الفواتير الناجحة", value=f"{total_inv_count} فاتورة صادرة")
-        except Exception as e:
-            st.error(f"خطأ: {str(e)}")
+            today_rev, all_profit = 0.0, 0.0
+            for inv in res.data:
+                all_profit += float(inv.get('total_profit', 0) or 0)
+                if inv.get('date') == today_str: today_rev += float(inv.get('final_total', 0) or 0)
+            c1, c2 = st.columns(2)
+            c1.metric(label="💰 مبيعات اليوم", value=f"{today_rev:.2f} ج.م")
+            c2.metric(label="💸 صافي الأرباح", value=f"{all_profit:.2f} ج.م")
+        except: pass
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 2️⃣ Tab 2: إنشاء فاتورة بيع جديدة مع سكنر الكاميرا المستقر 🛒📸
+    # 2️⃣ Tab 2: الفاتورة الجديدة مع الرادار الفوري 🛒
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_new_invoice:
-        st.markdown("### 🛒 إصدار فاتورة مبيعات سحابية جديدة")
+        render_live_scanner_component()
         
-        # الكاميرا المستقرة والآمنة للموبايل لمنع التهنيج
-        with st.expander("📸 فتح كاميرا الهاتف لعمل سكان للباركود"):
-            cam_image = st.camera_input("وجه الكاميرا على الباركود ثم التقط الصورة")
-            if cam_image:
-                try:
-                    bytes_data = cam_image.read()
-                    cv2_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
-                    detector = cv2.BarcodeDetector()
-                    retval, decoded_info, _ = detector.detectAndDecode(cv2_img)
-                    
-                    if retval and decoded_info[0]:
-                        st.session_state['scanned_code'] = decoded_info[0]
-                        st.success(f"🎯 تم قراءة الباركود بنجاح: {st.session_state['scanned_code']}")
-                except:
-                    st.error("⚠️ لم يتم لقط الباركود بوضوح، يرجى المحاولة مرة أخرى في إضاءة جيدة.")
-
         generated_inv_num = f"INV-MOB-{datetime.datetime.now().strftime('%M%S')}"
-        inv_cust_name = st.text_input("👤 السيد الدكتور / العيادة:", value="عميل نقدي", key="inv_cust_name_key")
-        inv_cust_phone = st.text_input("📱 رقم هاتف الدكتور:", key="inv_cust_phone_key")
-        
+        inv_cust_name = st.text_input("👤 اسم الدكتور / العيادة:", value="عميل نقدي")
+        inv_cust_phone = st.text_input("📱 رقم هاتف الدكتور:")
+
         try:
             prod_res = supabase.table('products').select('code, name, purchase_price, selling_price, quantity').execute()
-            all_prods = prod_res.data if prod_res.data else []
-            
-            if all_prods:
-                prod_options = {p['name']: p for p in all_prods}
+            if prod_res.data:
+                prod_options = {p['name']: p for p in prod_res.data}
                 
-                # ربط السكنر بالاختيار التلقائي
+                # توجيه المؤشر أوتوماتيكياً للصنف الممسوح بالرادار
                 default_index = 0
-                if st.session_state['scanned_code']:
+                if st.session_state['js_scanned_code']:
                     for idx, name in enumerate(list(prod_options.keys())):
-                        if prod_options[name]['code'] == st.session_state['scanned_code']:
+                        if str(prod_options[name]['code']).strip() == str(st.session_state['js_scanned_code']).strip():
                             default_index = idx
                             break
                 
-                selected_item_name = st.selectbox("📦 اختر المستلزم الطبي المراد بيعه:", list(prod_options.keys()), index=default_index)
-                
+                selected_item_name = st.selectbox("📦 اختر المستلزم المراد بيعه:", list(prod_options.keys()), index=default_index, key="inv_select")
                 item_details = prod_options[selected_item_name]
                 max_available = int(item_details['quantity'] or 0)
-                st.caption(f"📊 كود الصنف: {item_details['code']} | المتاح حالياً: {max_available} وحدة")
+                st.caption(f"📊 كود الصنف: {item_details['code']} | المتاح: {max_available} وحدة")
                 
                 if max_available <= 0:
-                    st.error("⚠️ عذراً دكتور، هذا المنتج نفد تماماً من المخزن!")
+                    st.error("⚠️ المنتج نفد من المخزن!")
                 else:
-                    qty_to_sell = st.number_input("🔢 الكمية المطلوبة:", min_value=1, max_value=max_available, step=1, value=1, key="qty_sell_key")
-                    discount_input = st.number_input("📉 الخصم الممنوح للفاتورة (ج.م):", min_value=0.0, step=5.0, value=0.0, key="disc_key")
+                    qty_to_sell = st.number_input("🔢 الكمية المطلوبة:", min_value=1, max_value=max_available, step=1, value=1)
+                    discount_input = st.number_input("📉 الخصم (ج.م):", min_value=0.0, value=0.0)
                     
                     sub_total = float(item_details['selling_price'] or 0) * qty_to_sell
                     final_total_bill = sub_total - discount_input
                     invoice_profit = ((float(item_details['selling_price'] or 0) - float(item_details['purchase_price'] or 0)) * qty_to_sell) - discount_input
-                    invoice_profit = max(0.0, invoice_profit)
                     
                     st.markdown(f"### 🎯 الصافي المطلوب: {final_total_bill:.2f} ج.م")
                     
-                    if st.button("💾 ترحيل الفاتورة وحفظها في السحاب", use_container_width=True, key="save_inv_btn"):
+                    if st.button("💾 حفظ وترحيل الفاتورة أونلاين", use_container_width=True):
                         supabase.table('invoices').insert({
-                            'invoice_num': generated_inv_num, 'customer_name': inv_cust_name,
-                            'phone_num': inv_cust_phone, 'date': datetime.date.today().strftime('%Y-%m-%d'),
-                            'total': sub_total, 'discount': discount_input, 'final_total': final_total_bill, 'total_profit': invoice_profit
+                            'invoice_num': generated_inv_num, 'customer_name': inv_cust_name, 'phone_num': inv_cust_phone,
+                            'date': datetime.date.today().strftime('%Y-%m-%d'), 'total': sub_total, 'discount': discount_input, 'final_total': final_total_bill, 'total_profit': max(0.0, invoice_profit)
                         }).execute()
-                        
                         supabase.table('invoice_items').insert({
-                            'invoice_num': generated_inv_num, 'product_code': item_details['code'],
-                            'product_name': selected_item_name, 'quantity': qty_to_sell, 'unit_price': item_details['selling_price'], 'total_price': sub_total
+                            'invoice_num': generated_inv_num, 'product_code': item_details['code'], 'product_name': selected_item_name, 'quantity': qty_to_sell, 'unit_price': item_details['selling_price'], 'total_price': sub_total
                         }).execute()
-                        
                         supabase.table('products').update({'quantity': (max_available - qty_to_sell)}).eq('code', item_details['code']).execute()
-                        st.success("🎉 تم حفظ الفاتورة بنجاح في السحاب!")
-                        st.session_state['scanned_code'] = "" # تصفير السكنر للفاتورة الجاية
+                        st.success("🎉 تم حفظ الفاتورة بنجاح!")
+                        st.session_state['js_scanned_code'] = ""
+                        st.query_params.clear()
                         st.rerun()
-            else:
-                st.warning("لا توجد منتجات بالمخزن للبيع!")
-        except Exception as e:
-            st.error(f"فشلت العملية: {str(e)}")
+        except Exception as e: st.error(str(e))
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 3️⃣ Tab 3: إضافة وتسجيل صنف ومنتج جديد تماماً من التليفون ➕📸
+    # 3️⃣ Tab 3: صنف جديد بالرادار الفوري ➕
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_add_product:
-        st.markdown("### ➕ تسجيل صنف جديد في مخزن مستلزمات الأسنان")
-        
-        scanned_new_code = ""
-        with st.expander("📸 فتح كاميرا الهاتف لعمل سكان لباركود صنف جديد"):
-            cam_image_n = st.camera_input("التقط صورة لباركود المنتج الجديد", key="cam_new_prod")
-            if cam_image_n:
-                try:
-                    bytes_data_n = cam_image_n.read()
-                    cv2_img_n = cv2.imdecode(np.frombuffer(bytes_data_n, np.uint8), cv2.IMREAD_COLOR)
-                    detector_n = cv2.BarcodeDetector()
-                    retval_n, decoded_info_n, _ = detector_n.detectAndDecode(cv2_img_n)
-                    if retval_n and decoded_info_n[0]:
-                        scanned_new_code = decoded_info_n[0]
-                        st.success(f"🎯 تم التقاط باركود المنتج الجديد: {scanned_new_code}")
-                except:
-                    pass
-
-        with st.form("add_new_product_form"):
-            new_p_code = st.text_input("📝 كود المنتج / الباركود:", value=scanned_new_code if scanned_new_code else "")
-            new_p_name = st.text_input("📦 اسم المنتج / Mادة:")
+        st.markdown("### ➕ تسجيل صنف جديد بكاميرا الرادار")
+        with st.form("add_product_form_js"):
+            new_p_code = st.text_input("📝 كود المنتج (امسحه بالرادار فوق أولاً):", value=st.session_state['js_scanned_code'])
+            new_p_name = st.text_input("📦 اسم المنتج / المادة:")
             new_p_cat = st.text_input("🗂️ الفئة:")
-            new_p_purchase = st.number_input("💰 سعر الشراء الأصلي (ج.م):", min_value=0.0, step=10.0, value=0.0)
-            new_p_selling = st.number_input("💵 سعر البيع للعيادات (ج.م):", min_value=0.0, step=10.0, value=0.0)
-            new_p_qty = st.number_input("🔢 الكمية الابتدائية المتوفرة:", min_value=0, step=1, value=10)
-            
-            submit_new_prod = st.form_submit_button("📥 إدراج الصنف في مخزن السحاب", use_container_width=True)
-            
-            if submit_new_prod:
+            new_p_purchase = st.number_input("💰 سعر الشراء الاصلي:", min_value=0.0)
+            new_p_selling = st.number_input("💵 سعر البيع للعيادات:", min_value=0.0)
+            new_p_qty = st.number_input("🔢 الكمية الابتدائية:", min_value=0, value=10)
+            submit_btn = st.form_submit_button("📥 إدراج الصنف في مخزن السحاب", use_container_width=True)
+            if submit_btn:
                 if new_p_code and new_p_name:
-                    try:
-                        check_exist = supabase.table('products').select('id').eq('code', new_p_code).execute()
-                        if check_exist.data:
-                            st.error("⚠️ هذا الكود مسجل مسبقاً لصنف آخر! استخدم كود مختلف.")
-                        else:
-                            supabase.table('products').insert({
-                                'code': new_p_code, 'name': new_p_name, 'category': new_p_cat,
-                                'purchase_price': new_p_purchase, 'selling_price': new_p_selling, 'quantity': new_p_qty
-                            }).execute()
-                            st.success(f"✅ تم حفظ المنتج الجديد ({new_p_name}) بنجاح في السحاب!")
-                    except Exception as e:
-                        st.error(f"فشل الحفظ: {str(e)}")
-                else:
-                    st.warning("⚠️ يرجى كتابة كود واسم المنتج على الأقل!")
+                    supabase.table('products').insert({
+                        'code': new_p_code, 'name': new_p_name, 'category': new_p_cat,
+                        'purchase_price': new_p_purchase, 'selling_price': new_p_selling, 'quantity': new_p_qty
+                    }).execute()
+                    st.success("✅ تم إدراج الصنف الجديد!")
+                    st.session_state['js_scanned_code'] = ""
+                    st.query_params.clear()
+                    st.rerun()
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 4️⃣ Tab 4: جرد أصناف المخزن ومراقبة النواقص وتزويد المشتريات
+    # 4️⃣ & 5️⃣ الجرد والعملاء
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     with tab_stock:
-        st.markdown("### 📦 كميات المواد الحالية وتزويد المشتريات")
-        try:
-            prod_res = supabase.table('products').select('code, name, purchase_price, selling_price, quantity').order('id').execute()
-            products_data = prod_res.data if prod_res.data else []
-            
-            if products_data:
-                df = pd.DataFrame(products_data)
-                df.columns = ["كود الصنف", "اسم المنتج", "سعر الشراء", "سعر البيع", "الكمية المتاحة"]
-                st.dataframe(df, use_container_width=True, hide_index=True)
-                
-                st.markdown("---")
-                st.markdown("##### 📥 تزويد بضاعة سريعة لصنف موجود:")
-                prod_options_p = {p['name']: (p['code'], p['quantity']) for p in products_data}
-                selected_prod_p = st.selectbox("اختر الصنف المراد تزويده:", list(prod_options_p.keys()), key="stock_select_key")
-                
-                if selected_prod_p:
-                    c_code, c_qty = prod_options_p[selected_prod_p]
-                    new_units = st.number_input("عدد الوحدات الجديدة المشتراة:", min_value=1, step=1, value=5, key="stock_qty_input_key")
-                    
-                    if st.button("📥 تحديث كمية الرف الفوري", use_container_width=True, key="stock_update_btn_key"):
-                        supabase.table('products').update({'quantity': (c_qty + new_units)}).eq('code', c_code).execute()
-                        st.success("✅ تم تحديث كمية المخزن السحابي فوراً!")
-                        st.rerun()
-            else:
-                st.info("المخزن فارغ حالياً.")
-        except Exception as e:
-            st.error(f"خطأ: {str(e)}")
-
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # 5️⃣ Tab 5: سجل العملاء
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        prod_res = supabase.table('products').select('code, name, purchase_price, selling_price, quantity').order('id').execute()
+        if prod_res.data: st.dataframe(pd.DataFrame(prod_res.data), use_container_width=True, hide_index=True)
     with tab_customers:
-        st.markdown("### 👥 سجل العيادات والرسائل الفورية")
-        try:
-            cust_res = supabase.table('customers').select('id, name, phone, balance').order('id').execute()
-            customers_data = cust_res.data if cust_res.data else []
-            
-            if customers_data:
-                for cust in customers_data:
-                    c_id = cust['id']
-                    c_name = cust['name']
-                    c_phone = cust['phone']
-                    c_res = cust.get('balance', 'لا توجد طلبات محجوزة حالياً') or 'لا توجد طلبات محجوزة حالياً'
-                    
-                    with st.expander(f"👤 د. {c_name} (ID: {c_id})"):
-                        st.write(f"📱 **رقم الجوال:** {c_phone}")
-                        st.write(f"📋 **المحجوزات الحالية:** {c_res}")
-                        
-                        msg = (
-                            f"🦷 *نظام Dental Box لمستلزمات الأسنان* 🦷\n"
-                            f"━━━━━━━━━━━━━━━━━━━\n"
-                            f"أهلاً دكتور *{c_name}*، يسعدنا تواصلكم معنا عبر النظام السحابي.\n\n"
-                            f"🆔 *رقم المعرف الخاص بك:* {c_id}\n"
-                            f"📋 *المنتجات والمواد المحجوزة لعيادتكم حالياً:*\n• {c_res.replace(' ، ', '\n• ').replace(' || ', '\n• ')}\n\n"
-                            f"━━━━━━━━━━━━━━━━━━━\n"
-                            f"تم قيد حجزكم وتجهيز طلباتكم مسبقاً بنجاح دكتور، يرجى إفادتنا بأي مستلزمات طبية إضافية تحتاجونها لعيادتكم الموقرة."
-                        )
-                        encoded_msg = urllib.parse.quote(msg)
-                        whatsapp_url = f"https://api.whatsapp.com/send?phone={c_phone.replace('+', '').replace(' ', '')}&text={encoded_msg}"
-                        
-                        st.markdown(f'<a href="{whatsapp_url}" target="_blank"><button style="width:100%; background-color:#10b981; color:white; border:none; padding:10px; border-radius:10px; font-weight:bold; cursor:pointer;">💬 إرسال تفاصيل الحجز عبر واتساب</button></a>', unsafe_allow_html=True)
-            else:
-                st.info("لا يوجد عملاء مسجلين.")
-        except Exception as e:
-            st.error(f"خطأ: {str(e)}")
+        cust_res = supabase.table('customers').select('id, name, phone, balance').order('id').execute()
+        if cust_res.data:
+            for c in cust_res.data:
+                with st.expander(f"👤 د. {c['name']} (ID: {c['id']})"):
+                    st.write(f"📱 جوال: {c['phone']} | طلبات: {c.get('balance', 'لا يوجد')}")
